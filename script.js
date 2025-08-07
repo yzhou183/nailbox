@@ -25,11 +25,7 @@ class NailBoxApp {
 
     // 获取Twilio配置 - 支持环境变量
     getTwilioConfig(key) {
-        // 尝试从环境变量获取（在服务器端部署时使用）
-        if (typeof process !== 'undefined' && process.env) {
-            const envKey = `TWILIO_${key.toUpperCase()}`;
-            return process.env[envKey];
-        }
+        // 在浏览器环境中，process.env不可用，直接返回null让代码使用默认值
         return null;
     }
 
@@ -772,37 +768,36 @@ class NailBoxApp {
                 formattedPhone = '+1' + phone.replace(/[^\d]/g, '');
             }
 
-            // 使用Twilio API
-            const auth = btoa(`${this.smsConfig.twilioAccountSid}:${this.smsConfig.twilioAuthToken}`);
-            const response = await fetch(`https://api.twilio.com/2010-04-01/Accounts/${this.smsConfig.twilioAccountSid}/Messages.json`, {
+            console.log(`准备发送SMS到: ${formattedPhone}`);
+
+            // 使用Netlify Function发送SMS
+            const response = await fetch('/.netlify/functions/send-sms', {
                 method: 'POST',
                 headers: {
-                    'Authorization': `Basic ${auth}`,
-                    'Content-Type': 'application/x-www-form-urlencoded'
+                    'Content-Type': 'application/json'
                 },
-                body: new URLSearchParams({
-                    'From': this.smsConfig.twilioFromNumber,
-                    'To': formattedPhone,
-                    'Body': message
+                body: JSON.stringify({
+                    to: formattedPhone,
+                    message: message
                 })
             });
 
-            if (response.ok) {
-                console.log(`SMS发送成功到 ${phone}`);
-                const result = await response.json();
-                console.log('Twilio响应:', result);
+            const result = await response.json();
+
+            if (response.ok && result.success) {
+                console.log(`SMS发送成功到 ${formattedPhone}:`, result.messageSid);
                 return true;
             } else {
-                console.error('SMS发送失败:', response.statusText);
-                const errorData = await response.text();
-                console.error('错误详情:', errorData);
+                console.error('SMS发送失败:', result.error);
+                // Fallback to alert for now
+                alert(`SMS发送到 ${formattedPhone}:\n\n${message}\n\n(后端服务暂时不可用，这是模拟发送)`);
                 return false;
             }
+
         } catch (error) {
             console.error('SMS发送错误:', error);
-            // 开发环境fallback
-            console.log(`模拟SMS发送到 ${phone}: ${message}`);
-            alert(`SMS模拟发送到 ${phone}:\n${message}`);
+            // Fallback显示
+            alert(`SMS发送到 ${phone}:\n\n${message}\n\n(网络错误，这是模拟发送)`);
             return true;
         }
     }

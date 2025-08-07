@@ -1,0 +1,15 @@
+{
+  "name": "nailbox-app",
+  "version": "1.0.0",
+  "description": "NailBox美甲预约管理系统",
+  "main": "script.js",
+  "scripts": {
+    "build": "echo 'Build complete'",
+    "dev": "netlify dev"
+  },
+  "dependencies": {
+    "twilio": "^4.19.0"
+  },
+  "author": "NailBox",
+  "license": "MIT"
+}

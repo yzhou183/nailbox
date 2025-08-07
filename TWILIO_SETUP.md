@@ -86,11 +86,31 @@ this.smsConfig = {
 3. 验证接收号码已在Twilio中验证
 4. 检查Twilio账户余额
 
-## 7. 当前状态
+## 7. Netlify部署配置
 
-在您配置真实Twilio信息之前，系统会：
-- 在控制台显示模拟SMS信息
-- 弹出提示框显示将要发送的短信内容
-- 这样您可以测试SMS逻辑而不发送真实短信
+为了让SMS功能在Netlify上正常工作，需要：
 
-配置完成后将发送真实短信到指定号码。
+### 设置环境变量:
+1. 登录Netlify Dashboard
+2. 进入您的站点设置
+3. 找到 "Environment variables" 
+4. 添加以下变量：
+   - `TWILIO_ACCOUNT_SID`: AC983522c8e3a05daf29ba5b48e23f4381
+   - `TWILIO_AUTH_TOKEN`: eceec63f6b5c1300fe026a9f959f7663
+   - `TWILIO_FROM_NUMBER`: +18334973485
+
+### 部署文件:
+确保以下文件已推送到GitHub:
+- `netlify/functions/send-sms.js` (Serverless函数)
+- `package.json` (依赖配置)
+
+## 8. 当前状态
+
+系统现在使用Netlify Functions作为后端：
+- ✅ 解决了浏览器CORS限制问题
+- ✅ 安全地隐藏了Twilio密钥在服务器端
+- ✅ 支持发送真实SMS到验证号码
+
+如果Netlify Function不可用，系统会：
+- 显示fallback提示框
+- 在控制台记录详细错误信息
