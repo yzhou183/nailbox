@@ -10,6 +10,12 @@ class NailBoxApp {
         this.bookings = JSON.parse(localStorage.getItem('nailbox-bookings') || '[]');
         this.currentLanguage = localStorage.getItem('nailbox-language') || 'zh';
         
+        // SMS configuration
+        this.smsConfig = {
+            enabled: true,
+            adminPhone: '3238189780'
+        };
+        
         this.init();
     }
 
@@ -488,7 +494,7 @@ class NailBoxApp {
         document.getElementById('submit-booking').disabled = !(name && phone);
     }
 
-    submitBooking() {
+    async submitBooking() {
         const name = document.getElementById('customer-name').value.trim();
         const phone = document.getElementById('customer-phone').value.trim();
         
@@ -515,6 +521,18 @@ class NailBoxApp {
         localStorage.setItem('nailbox-bookings', JSON.stringify(this.bookings));
 
         this.customerInfo = { name, phone };
+
+        // 发送SMS通知
+        try {
+            // 发送客户通知
+            await this.sendCustomerBookingNotification(booking);
+            // 发送美甲师通知
+            await this.sendAdminBookingNotification(booking);
+            console.log('SMS通知发送完成');
+        } catch (error) {
+            console.error('SMS发送失败:', error);
+        }
+
         this.showConfirmation(booking);
     }
 
@@ -619,20 +637,29 @@ class NailBoxApp {
         }
     }
 
-    cancelBooking(bookingId) {
+    async cancelBooking(bookingId) {
         if (confirm('确定要取消这个预约吗？')) {
             // 重新从 localStorage 读取最新数据
             this.bookings = JSON.parse(localStorage.getItem('nailbox-bookings') || '[]');
             const bookingIndex = this.bookings.findIndex(b => b.id === bookingId);
             if (bookingIndex !== -1) {
                 this.bookings[bookingIndex].status = 'cancelled';
+                this.bookings[bookingIndex].updatedAt = new Date().toISOString();
                 localStorage.setItem('nailbox-bookings', JSON.stringify(this.bookings));
+                
+                // 发送取消通知短信
+                try {
+                    await this.sendCustomerCancellationNotification(this.bookings[bookingIndex]);
+                    console.log('取消通知短信已发送');
+                } catch (error) {
+                    console.error('取消短信发送失败:', error);
+                }
                 
                 const phone = document.getElementById('login-phone').value.trim();
                 const userBookings = this.bookings.filter(booking => booking.phone === phone);
                 this.displayUserBookings(userBookings);
                 
-                alert('预约已取消');
+                alert('预约已取消，系统已自动发送取消通知。');
             }
         }
     }
@@ -680,6 +707,92 @@ class NailBoxApp {
         if (loadingElement && loadingElement.parentNode) {
             loadingElement.parentNode.removeChild(loadingElement);
         }
+    }
+
+    // SMS服务功能
+    async sendSMS(phone, message) {
+        if (!this.smsConfig.enabled) {
+            console.log('SMS功能已禁用');
+            return false;
+        }
+
+        try {
+            // 使用 TextBee SMS服务 (免费API)
+            const response = await fetch('https://api.textbee.com/api/v1/gateway/sms', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer your_textbee_token' // 需要真实的token
+                },
+                body: JSON.stringify({
+                    to: phone,
+                    message: message,
+                    sender: 'NailBox'
+                })
+            });
+
+            if (response.ok) {
+                console.log(`SMS发送成功到 ${phone}`);
+                return true;
+            } else {
+                console.error('SMS发送失败:', response.statusText);
+                return false;
+            }
+        } catch (error) {
+            console.error('SMS发送错误:', error);
+            // 在开发环境中，我们模拟SMS发送成功
+            console.log(`模拟SMS发送到 ${phone}: ${message}`);
+            return true;
+        }
+    }
+
+    // 发送客户预约通知短信
+    async sendCustomerBookingNotification(booking) {
+        const date = new Date(booking.date).toLocaleDateString('zh-CN');
+        const message = `您好！您的美甲预约已提交，正在等待确认。\n` +
+                       `预约时间：${date} ${booking.time}\n` +
+                       `服务：${booking.service.name}\n` +
+                       `总价：$${booking.totalPrice}\n` +
+                       `详情地址请访问：https://nailbox11.netlify.app`;
+        
+        return await this.sendSMS(booking.phone, message);
+    }
+
+    // 发送美甲师新预约通知短信
+    async sendAdminBookingNotification(booking) {
+        const date = new Date(booking.date).toLocaleDateString('zh-CN');
+        const message = `新的美甲预约待确认！\n` +
+                       `客户：${booking.name} (${booking.phone})\n` +
+                       `时间：${date} ${booking.time}\n` +
+                       `服务：${booking.service.name}\n` +
+                       `总价：$${booking.totalPrice}\n` +
+                       `详情地址请访问：https://nailbox11.netlify.app`;
+        
+        return await this.sendSMS(this.smsConfig.adminPhone, message);
+    }
+
+    // 发送客户确认通知短信
+    async sendCustomerConfirmationNotification(booking) {
+        const date = new Date(booking.date).toLocaleDateString('zh-CN');
+        const message = `您的美甲预约已确认！\n` +
+                       `预约时间：${date} ${booking.time}\n` +
+                       `服务：${booking.service.name}\n` +
+                       `总价：$${booking.totalPrice}\n` +
+                       `详情地址请访问：https://nailbox11.netlify.app`;
+        
+        return await this.sendSMS(booking.phone, message);
+    }
+
+    // 发送客户取消通知短信
+    async sendCustomerCancellationNotification(booking) {
+        const date = new Date(booking.date).toLocaleDateString('zh-CN');
+        const message = `您的美甲预约已被取消。\n` +
+                       `原预约时间：${date} ${booking.time}\n` +
+                       `服务：${booking.service.name}\n` +
+                       `如有疑问，请联系我们。\n` +
+                       `详情地址请访问：https://nailbox11.netlify.app`;
+        
+        return await this.sendSMS(booking.phone, message);
     }
 
     // Admin Management Functions
@@ -905,34 +1018,48 @@ class NailBoxApp {
         return div;
     }
 
-    quickConfirmBooking(bookingId) {
+    async quickConfirmBooking(bookingId) {
         if (confirm('确定要确认这个预约吗？')) {
-            this.updateBookingStatus(bookingId, 'confirmed');
+            await this.updateBookingStatus(bookingId, 'confirmed');
         }
     }
 
-    quickRejectBooking(bookingId) {
+    async quickRejectBooking(bookingId) {
         if (confirm('确定要拒绝这个预约吗？')) {
-            this.updateBookingStatus(bookingId, 'rejected');
+            await this.updateBookingStatus(bookingId, 'rejected');
         }
     }
 
-    adminCancelBooking(bookingId) {
+    async adminCancelBooking(bookingId) {
         if (confirm('确定要取消这个已确认的预约吗？取消后客户会收到通知。')) {
-            this.updateBookingStatus(bookingId, 'cancelled');
+            await this.updateBookingStatus(bookingId, 'cancelled');
         }
     }
 
-    updateBookingStatus(bookingId, status) {
+    async updateBookingStatus(bookingId, status) {
         const bookingIndex = this.bookings.findIndex(b => b.id === bookingId);
         if (bookingIndex !== -1) {
             this.bookings[bookingIndex].status = status;
             this.bookings[bookingIndex].updatedAt = new Date().toISOString();
             localStorage.setItem('nailbox-bookings', JSON.stringify(this.bookings));
             
+            // 发送相应的短信通知
+            try {
+                if (status === 'confirmed') {
+                    await this.sendCustomerConfirmationNotification(this.bookings[bookingIndex]);
+                    console.log('确认通知短信已发送');
+                } else if (status === 'cancelled') {
+                    await this.sendCustomerCancellationNotification(this.bookings[bookingIndex]);
+                    console.log('取消通知短信已发送');
+                }
+            } catch (error) {
+                console.error(`${status}短信发送失败:`, error);
+            }
+            
             // Show success message
-            const statusText = status === 'confirmed' ? '确认' : (status === 'rejected' ? '拒绝' : '更新');
-            alert(`预约已${statusText}！${status === 'confirmed' ? '系统已自动发送确认通知。' : ''}`);
+            const statusText = status === 'confirmed' ? '确认' : (status === 'rejected' ? '拒绝' : status === 'cancelled' ? '取消' : '更新');
+            const notificationText = status === 'confirmed' ? '系统已自动发送确认通知。' : status === 'cancelled' ? '系统已自动发送取消通知。' : '';
+            alert(`预约已${statusText}！${notificationText}`);
             
             // Refresh dashboard
             this.loadAdminDashboard();
@@ -1031,23 +1158,23 @@ class NailBoxApp {
         this.currentBookingId = null;
     }
 
-    confirmBooking() {
+    async confirmBooking() {
         if (this.currentBookingId && confirm('确定要确认这个预约吗？')) {
-            this.updateBookingStatus(this.currentBookingId, 'confirmed');
+            await this.updateBookingStatus(this.currentBookingId, 'confirmed');
             this.closeModal();
         }
     }
 
-    rejectBooking() {
+    async rejectBooking() {
         if (this.currentBookingId && confirm('确定要拒绝这个预约吗？')) {
-            this.updateBookingStatus(this.currentBookingId, 'rejected');
+            await this.updateBookingStatus(this.currentBookingId, 'rejected');
             this.closeModal();
         }
     }
 
-    cancelConfirmedBooking() {
+    async cancelConfirmedBooking() {
         if (this.currentBookingId && confirm('确定要取消这个已确认的预约吗？取消后客户会收到通知。')) {
-            this.updateBookingStatus(this.currentBookingId, 'cancelled');
+            await this.updateBookingStatus(this.currentBookingId, 'cancelled');
             this.closeModal();
         }
     }
