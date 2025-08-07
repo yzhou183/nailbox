@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Twilio凭据测试</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input { width: 100%; padding: 8px; margin-bottom: 10px; }
+        button { padding: 10px 20px; background: #333; color: white; border: none; cursor: pointer; margin-right: 10px; }
+        .result { margin-top: 20px; padding: 15px; border-radius: 5px; white-space: pre-line; }
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+    </style>
+</head>
+<body>
+    <h1>Twilio凭据验证工具</h1>
+    
+    <p>请重新从Twilio控制台获取最新的凭据信息:</p>
+    
+    <div class="form-group">
+        <label for="accountSid">Account SID (以AC开头):</label>
+        <input type="text" id="accountSid" value="AC983522c8e3a05daf29ba5b48e23f4381" placeholder="ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx">
+    </div>
+    
+    <div class="form-group">
+        <label for="authToken">Auth Token (32位字符):</label>
+        <input type="text" id="authToken" value="eceec63f6b5c1300fe026a9f959f7663" placeholder="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx">
+    </div>
+    
+    <div class="form-group">
+        <label for="fromNumber">发送号码:</label>
+        <input type="text" id="fromNumber" value="+18334973485" placeholder="+1xxxxxxxxxx">
+    </div>
+    
+    <div class="form-group">
+        <label for="testPhone">测试接收号码:</label>
+        <input type="tel" id="testPhone" value="+13238189780" placeholder="+1xxxxxxxxxx">
+    </div>
+    
+    <button onclick="testCredentials()">验证凭据</button>
+    <button onclick="sendTestSMS()">发送测试SMS</button>
+    
+    <div id="result" class="result" style="display: none;"></div>
+
+    <script>
+        async function testCredentials() {
+            const accountSid = document.getElementById('accountSid').value;
+            const authToken = document.getElementById('authToken').value;
+            
+            showResult('验证凭据格式...', 'info');
+            
+            // 基本格式验证
+            if (!accountSid.startsWith('AC') || accountSid.length !== 34) {
+                showResult('❌ Account SID格式错误\n应该以AC开头，总长度34位', 'error');
+                return;
+            }
+            
+            if (authToken.length !== 32) {
+                showResult('❌ Auth Token长度错误\n应该是32位字符', 'error');
+                return;
+            }
+            
+            showResult('✅ 凭据格式验证通过\n可以尝试发送测试SMS', 'success');
+        }
+        
+        async function sendTestSMS() {
+            const accountSid = document.getElementById('accountSid').value;
+            const authToken = document.getElementById('authToken').value;
+            const fromNumber = document.getElementById('fromNumber').value;
+            const testPhone = document.getElementById('testPhone').value;
+            
+            showResult('发送测试SMS...', 'info');
+            
+            try {
+                const response = await fetch('/.netlify/functions/send-sms', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Test-AccountSid': accountSid,
+                        'X-Test-AuthToken': authToken,
+                        'X-Test-FromNumber': fromNumber
+                    },
+                    body: JSON.stringify({
+                        to: testPhone,
+                        message: '测试SMS - 验证Twilio凭据'
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok && result.success) {
+                    showResult(`✅ SMS发送成功!\n消息ID: ${result.messageSid}\n\n请更新以下凭据:\nAccount SID: ${accountSid}\nAuth Token: ${authToken}\nFrom Number: ${fromNumber}`, 'success');
+                } else {
+                    showResult(`❌ SMS发送失败!\n错误: ${result.error}\n代码: ${result.code}\n\n请检查:\n1. 凭据是否正确\n2. Twilio账户状态\n3. 试用账户限制`, 'error');
+                }
+                
+            } catch (error) {
+                showResult(`❌ 网络错误: ${error.message}`, 'error');
+            }
+        }
+        
+        function showResult(message, type) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.textContent = message;
+            resultDiv.className = `result ${type}`;
+            resultDiv.style.display = 'block';
+        }
+    </script>
+</body>
+</html>

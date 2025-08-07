@@ -27,10 +27,14 @@ exports.handler = async (event, context) => {
       };
     }
 
-    // Twilio配置 - 在Netlify环境变量中设置
+    // Twilio配置 - 优先使用环境变量，然后使用硬编码
     const accountSid = process.env.TWILIO_ACCOUNT_SID || 'AC983522c8e3a05daf29ba5b48e23f4381';
     const authToken = process.env.TWILIO_AUTH_TOKEN || 'eceec63f6b5c1300fe026a9f959f7663';
     const fromNumber = process.env.TWILIO_FROM_NUMBER || '+18334973485';
+    
+    console.log('使用的凭据来源:');
+    console.log('- AccountSid:', process.env.TWILIO_ACCOUNT_SID ? '环境变量' : '硬编码');
+    console.log('- AuthToken:', process.env.TWILIO_AUTH_TOKEN ? '环境变量' : '硬编码');
 
     console.log('Twilio配置:');
     console.log('- AccountSid:', accountSid.substring(0, 10) + '...');
