@@ -10,31 +10,44 @@
     <div id="app">
         <!-- 主页面 -->
         <div id="home-page" class="page active">
+            <div class="top-nav">
+                <div class="dropdown-menu">
+                    <button id="menu-btn" class="menu-btn">☰</button>
+                    <div id="dropdown-content" class="dropdown-content">
+                        <a href="#" id="admin-menu-btn" data-zh="美甲师管理" data-en="Admin Panel">美甲师管理</a>
+                    </div>
+                </div>
+                <div class="language-toggle">
+                    <button id="lang-zh" class="lang-btn active" data-lang="zh">中文</button>
+                    <button id="lang-en" class="lang-btn" data-lang="en">English</button>
+                </div>
+            </div>
             <header>
                 <h1>NailBox</h1>
-                <p class="subtitle">专业美甲服务</p>
             </header>
             
             <div class="info-card">
-                <h2>店铺信息</h2>
+                <h2 data-zh="店铺信息" data-en="Store Information">店铺信息</h2>
                 <div class="info-item">
-                    <strong>微信:</strong> nailbox11
+                    <strong data-zh="微信:" data-en="WeChat:">微信:</strong> nailbox11
                 </div>
-                <div class="info-item">
-                    <strong>地址:</strong> 888 S Hope St, Los Angeles, CA, 90017
+                <div class="info-item address-item">
+                    <strong data-zh="地址:" data-en="Address:">地址:</strong> 888 S Hope St, CA, 90017
                 </div>
-                <div class="info-item">
-                    <strong>上楼说明:</strong> 到了跟前台说1101，他会给你按电梯
-                </div>
-                <div class="info-item">
-                    <strong>停车说明:</strong><br>
-                    公寓正门在这个车库对面，你先停正门口（车库的小巷子）进去找前台拿 visitor parking pass 放在车里，pass一次会给两个小时，过了可以renew，开进去靠近巷子尽头那个车库，也就是照片中的车库（不是petco那个），有写Guest parking的车位都可以停。
+                <div class="parking-accordion">
+                    <button class="parking-header" id="parking-toggle">
+                        <strong data-zh="停车说明" data-en="Parking Instructions">停车说明</strong>
+                        <span class="accordion-icon">▼</span>
+                    </button>
+                    <div class="parking-content" id="parking-content">
+                        <span data-zh="公寓正门在小巷子里面 请先停正门口打双闪 进去找前台拿visitor parking pass 开进去靠近巷子尽头那个车库 不是靠近巷子口petco的车库" data-en="The apartment entrance is inside the alley. Please park at the main entrance with hazard lights on, go inside to get visitor parking pass from the front desk, then drive to the garage at the far end of the alley (not the Petco garage near the alley entrance).">公寓正门在小巷子里面 请先停正门口打双闪 进去找前台拿visitor parking pass 开进去靠近巷子尽头那个车库 不是靠近巷子口petco的车库</span>
+                    </div>
                 </div>
             </div>
             
             <div class="action-buttons">
-                <button id="book-btn" class="primary-btn">Book</button>
-                <button id="my-booking-btn" class="secondary-btn">My Booking</button>
+                <button id="book-btn" class="primary-btn" data-zh="预约" data-en="Book">预约</button>
+                <button id="my-booking-btn" class="secondary-btn" data-zh="我的预约" data-en="My Bookings">我的预约</button>
             </div>
         </div>
 
@@ -237,7 +250,12 @@
             </div>
 
             <div id="booking-list" class="booking-list" style="display: none;">
-                <h3>您的预约</h3>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h3>您的预约</h3>
+                    <button id="refresh-bookings" class="secondary-btn" style="padding: 8px 16px; font-size: 0.9rem;">
+                        🔄 刷新状态
+                    </button>
+                </div>
                 <div id="bookings"></div>
             </div>
         </div>
@@ -258,6 +276,83 @@
             <div class="confirmation-actions">
                 <button id="back-to-home" class="primary-btn">返回主页</button>
                 <button id="view-my-bookings" class="secondary-btn">查看我的预约</button>
+            </div>
+        </div>
+
+        <!-- 美甲师登录页面 -->
+        <div id="admin-login-page" class="page">
+            <header>
+                <button class="back-btn" onclick="goBack()">←</button>
+                <h2>美甲师登录</h2>
+            </header>
+            
+            <div class="admin-login-section">
+                <div class="form-group">
+                    <label for="admin-username">用户名</label>
+                    <input type="text" id="admin-username" placeholder="输入美甲师用户名">
+                </div>
+                <div class="form-group">
+                    <label for="admin-password">密码</label>
+                    <input type="password" id="admin-password" placeholder="输入密码">
+                </div>
+                <button id="admin-login-btn" class="primary-btn">登录</button>
+            </div>
+        </div>
+
+        <!-- 美甲师管理后台 -->
+        <div id="admin-dashboard-page" class="page">
+            <header>
+                <h2>美甲师管理后台</h2>
+                <button id="admin-logout" class="logout-btn">退出登录</button>
+            </header>
+
+            <!-- 统计概览 -->
+            <div class="stats-section">
+                <div class="stat-card">
+                    <div class="stat-number" id="pending-count">0</div>
+                    <div class="stat-label">待确认预约</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="confirmed-count">0</div>
+                    <div class="stat-label">已确认预约</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="today-count">0</div>
+                    <div class="stat-label">今日预约</div>
+                </div>
+            </div>
+
+            <!-- 预约管理标签页 -->
+            <div class="admin-tabs">
+                <button class="tab-btn active" data-tab="pending">待确认 (<span id="pending-tab-count">0</span>)</button>
+                <button class="tab-btn" data-tab="confirmed">已确认 (<span id="confirmed-tab-count">0</span>)</button>
+                <button class="tab-btn" data-tab="all">全部预约</button>
+            </div>
+
+            <!-- 预约列表 -->
+            <div class="admin-bookings">
+                <div id="admin-pending-bookings" class="tab-content active"></div>
+                <div id="admin-confirmed-bookings" class="tab-content"></div>
+                <div id="admin-all-bookings" class="tab-content"></div>
+            </div>
+        </div>
+
+        <!-- 预约详情弹窗 -->
+        <div id="booking-detail-modal" class="modal" style="display: none;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>预约详情</h3>
+                    <span class="close-modal">&times;</span>
+                </div>
+                <div class="modal-body" id="booking-detail-content">
+                    <!-- 预约详情内容 -->
+                </div>
+                <div class="modal-actions">
+                    <button id="confirm-booking" class="confirm-btn">确认预约</button>
+                    <button id="reject-booking" class="reject-btn">拒绝预约</button>
+                    <button id="cancel-confirmed-booking" class="admin-cancel-btn">取消预约</button>
+                    <button id="close-modal" class="secondary-btn">关闭</button>
+                </div>
             </div>
         </div>
     </div>
