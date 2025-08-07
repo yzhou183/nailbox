@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SMS测试页面</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; }
+        input, textarea { width: 100%; padding: 8px; margin-bottom: 10px; }
+        button { padding: 10px 20px; background: #333; color: white; border: none; cursor: pointer; }
+        .result { margin-top: 20px; padding: 10px; border-radius: 5px; }
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+    </style>
+</head>
+<body>
+    <h1>SMS功能测试</h1>
+    
+    <div class="form-group">
+        <label for="phone">接收号码:</label>
+        <input type="tel" id="phone" value="+13238189780" placeholder="+1xxxxxxxxxx">
+    </div>
+    
+    <div class="form-group">
+        <label for="message">消息内容:</label>
+        <textarea id="message" rows="4">测试SMS发送功能 - NailBox系统</textarea>
+    </div>
+    
+    <button onclick="testSMS()">发送测试SMS</button>
+    
+    <div id="result" class="result" style="display: none;"></div>
+
+    <script>
+        async function testSMS() {
+            const phone = document.getElementById('phone').value;
+            const message = document.getElementById('message').value;
+            const resultDiv = document.getElementById('result');
+            
+            if (!phone || !message) {
+                showResult('请填写电话号码和消息内容', false);
+                return;
+            }
+            
+            try {
+                console.log('发送SMS到:', phone);
+                console.log('消息:', message);
+                
+                const response = await fetch('/.netlify/functions/send-sms', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        to: phone,
+                        message: message
+                    })
+                });
+                
+                console.log('响应状态:', response.status);
+                const result = await response.json();
+                console.log('响应内容:', result);
+                
+                if (response.ok && result.success) {
+                    showResult(`✅ SMS发送成功!\n消息ID: ${result.messageSid}\n状态: ${result.status}`, true);
+                } else {
+                    showResult(`❌ SMS发送失败!\n错误: ${result.error}\n代码: ${result.code}\n详情: ${result.details}`, false);
+                }
+                
+            } catch (error) {
+                console.error('发送错误:', error);
+                showResult(`❌ 网络错误: ${error.message}`, false);
+            }
+        }
+        
+        function showResult(message, success) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.textContent = message;
+            resultDiv.className = success ? 'result success' : 'result error';
+            resultDiv.style.display = 'block';
+        }
+    </script>
+</body>
+</html>

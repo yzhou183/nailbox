@@ -749,6 +749,12 @@ class NailBoxApp {
             return false;
         }
 
+        // 显示当前配置状态
+        console.log('SMS配置检查:');
+        console.log('- enabled:', this.smsConfig.enabled);
+        console.log('- accountSid:', this.smsConfig.twilioAccountSid.substring(0, 10) + '...');
+        console.log('- fromNumber:', this.smsConfig.twilioFromNumber);
+        
         // 检查Twilio配置
         if (this.smsConfig.twilioAccountSid === 'your_twilio_account_sid_here' ||
             this.smsConfig.twilioAuthToken === 'your_twilio_auth_token_here' ||
@@ -769,8 +775,10 @@ class NailBoxApp {
             }
 
             console.log(`准备发送SMS到: ${formattedPhone}`);
+            console.log(`消息内容: ${message}`);
 
             // 使用Netlify Function发送SMS
+            console.log('调用Netlify Function: /.netlify/functions/send-sms');
             const response = await fetch('/.netlify/functions/send-sms', {
                 method: 'POST',
                 headers: {
@@ -782,15 +790,26 @@ class NailBoxApp {
                 })
             });
 
-            const result = await response.json();
+            console.log('Function响应状态:', response.status);
+            
+            let result;
+            try {
+                result = await response.json();
+                console.log('Function响应内容:', result);
+            } catch (parseError) {
+                console.error('无法解析响应JSON:', parseError);
+                const textResult = await response.text();
+                console.error('响应文本内容:', textResult);
+                throw new Error('Function响应格式错误');
+            }
 
             if (response.ok && result.success) {
-                console.log(`SMS发送成功到 ${formattedPhone}:`, result.messageSid);
+                console.log(`✅ SMS发送成功到 ${formattedPhone}:`, result.messageSid);
+                alert(`✅ SMS已发送到 ${formattedPhone}\n消息ID: ${result.messageSid}`);
                 return true;
             } else {
-                console.error('SMS发送失败:', result.error);
-                // Fallback to alert for now
-                alert(`SMS发送到 ${formattedPhone}:\n\n${message}\n\n(后端服务暂时不可用，这是模拟发送)`);
+                console.error('❌ SMS发送失败:', result.error);
+                alert(`❌ SMS发送失败到 ${formattedPhone}\n错误: ${result.error}\n\n消息内容:\n${message}`);
                 return false;
             }
 
