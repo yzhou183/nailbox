@@ -41,13 +41,20 @@ exports.handler = async (event, context) => {
     console.log('- FromNumber:', fromNumber);
     console.log('- ToNumber:', to);
     
+    // 确保From Number格式正确
+    let validFromNumber = fromNumber;
+    if (!fromNumber.startsWith('+1') && fromNumber.length === 10) {
+        validFromNumber = '+1' + fromNumber;
+        console.log('- 修正From Number格式:', validFromNumber);
+    }
+    
     const client = twilio(accountSid, authToken);
 
     // 发送SMS
     console.log('开始发送SMS...');
     const result = await client.messages.create({
       body: message,
-      from: fromNumber,
+      from: validFromNumber,
       to: to
     });
 

@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Twilio电话号码验证指南</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            padding: 20px; 
+            max-width: 800px; 
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+        .alert { 
+            padding: 15px; 
+            margin: 20px 0; 
+            border-radius: 5px; 
+            border-left: 4px solid #007bff;
+        }
+        .alert-warning { 
+            background: #fff3cd; 
+            border-color: #ffc107; 
+            color: #856404; 
+        }
+        .alert-info { 
+            background: #d1ecf1; 
+            border-color: #17a2b8; 
+            color: #0c5460; 
+        }
+        .alert-success { 
+            background: #d4edda; 
+            border-color: #28a745; 
+            color: #155724; 
+        }
+        .steps { 
+            background: #f8f9fa; 
+            padding: 20px; 
+            border-radius: 5px; 
+            margin: 20px 0; 
+        }
+        .step { 
+            margin: 15px 0; 
+            padding: 10px;
+            border-left: 3px solid #007bff;
+            padding-left: 15px;
+        }
+        code { 
+            background: #f1f3f4; 
+            padding: 2px 6px; 
+            border-radius: 3px; 
+            font-family: monospace;
+        }
+        .highlight { 
+            background: #ffeb3b; 
+            padding: 2px 4px; 
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔧 Twilio电话号码验证指南</h1>
+    
+    <div class="alert alert-warning">
+        <strong>⚠️ 重要提醒：</strong>
+        Twilio免费试用账户只能向已验证的电话号码发送SMS。虽然SMS发送成功（获得了消息ID），但如果接收号码未验证，实际不会收到短信。
+    </div>
+
+    <div class="alert alert-info">
+        <strong>💡 当前状态：</strong>
+        SMS发送成功，消息ID: <code>SMdf0d95ee4ac1f7bab46abc497b626f8a</code>
+        <br>需要验证接收号码: <strong>+13238189780</strong>
+    </div>
+
+    <div class="steps">
+        <h2>📋 解决步骤</h2>
+        
+        <div class="step">
+            <h3>步骤1: 验证电话号码</h3>
+            <ol>
+                <li>访问 <a href="https://console.twilio.com" target="_blank">Twilio控制台</a></li>
+                <li>登录您的账户</li>
+                <li>在左侧菜单找到 <strong>"Phone Numbers"</strong> → <strong>"Verified Caller IDs"</strong></li>
+                <li>检查 <code>+13238189780</code> 是否在列表中</li>
+                <li>如果没有，点击 <strong>"Add a new number"</strong></li>
+                <li>输入 <code>+13238189780</code></li>
+                <li>选择验证方式（通话或短信）</li>
+                <li>输入收到的验证码完成验证</li>
+            </ol>
+        </div>
+
+        <div class="step">
+            <h3>步骤2: 检查消息状态</h3>
+            <ol>
+                <li>在Twilio控制台，进入 <strong>"Messaging"</strong> → <strong>"Logs"</strong> → <strong>"Messages"</strong></li>
+                <li>找到消息ID: <code>SMdf0d95ee4ac1f7bab46abc497b626f8a</code></li>
+                <li>查看消息状态：
+                    <ul>
+                        <li><span class="highlight">"delivered"</span> = 成功送达</li>
+                        <li><span class="highlight">"failed"</span> = 发送失败</li>
+                        <li><span class="highlight">"undelivered"</span> = 无法送达</li>
+                    </ul>
+                </li>
+                <li>查看任何错误代码和说明</li>
+            </ol>
+        </div>
+
+        <div class="step">
+            <h3>步骤3: 升级到付费账户（可选）</h3>
+            <p>如果需要向未验证号码发送SMS：</p>
+            <ol>
+                <li>在Twilio控制台升级账户</li>
+                <li>添加信用卡信息</li>
+                <li>购买至少$20的信用额度</li>
+                <li>升级后可向任何有效号码发送SMS</li>
+            </ol>
+        </div>
+    </div>
+
+    <div class="alert alert-success">
+        <h3>✅ 验证成功后</h3>
+        <p>一旦号码验证完成：</p>
+        <ul>
+            <li>美甲师号码 <code>+13238189780</code> 将能收到新预约通知</li>
+            <li>已验证的客户号码将能收到确认和取消通知</li>
+            <li>系统将正常发送所有SMS通知</li>
+        </ul>
+    </div>
+
+    <div class="alert alert-info">
+        <h3>🔄 立即测试</h3>
+        <p>验证完成后，您可以：</p>
+        <ol>
+            <li>返回 <a href="sms-test.html">SMS测试页面</a> 重新测试</li>
+            <li>或者直接在预约系统中创建一个测试预约</li>
+            <li>检查是否收到SMS通知</li>
+        </ol>
+    </div>
+
+    <hr style="margin: 40px 0;">
+    
+    <h2>🆘 常见问题</h2>
+    
+    <h3>Q: 为什么显示发送成功但没收到？</h3>
+    <p>A: Twilio试用账户的安全限制。只有验证过的号码才能实际收到SMS。</p>
+    
+    <h3>Q: 如何知道号码是否已验证？</h3>
+    <p>A: 在 "Verified Caller IDs" 页面可以看到所有已验证的号码列表。</p>
+    
+    <h3>Q: 验证需要多长时间？</h3>
+    <p>A: 通常几分钟内完成。验证后立即生效。</p>
+
+</body>
+</html>
