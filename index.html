@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NailBox - 美甲预约管理系统</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="app">
+        <!-- 主页面 -->
+        <div id="home-page" class="page active">
+            <header>
+                <h1>NailBox</h1>
+                <p class="subtitle">专业美甲服务</p>
+            </header>
+            
+            <div class="info-card">
+                <h2>店铺信息</h2>
+                <div class="info-item">
+                    <strong>微信:</strong> nailbox11
+                </div>
+                <div class="info-item">
+                    <strong>地址:</strong> 888 S Hope St, Los Angeles, CA, 90017
+                </div>
+                <div class="info-item">
+                    <strong>上楼说明:</strong> 到了跟前台说1101，他会给你按电梯
+                </div>
+                <div class="info-item">
+                    <strong>停车说明:</strong><br>
+                    公寓正门在这个车库对面，你先停正门口（车库的小巷子）进去找前台拿 visitor parking pass 放在车里，pass一次会给两个小时，过了可以renew，开进去靠近巷子尽头那个车库，也就是照片中的车库（不是petco那个），有写Guest parking的车位都可以停。
+                </div>
+            </div>
+            
+            <div class="action-buttons">
+                <button id="book-btn" class="primary-btn">Book</button>
+                <button id="my-booking-btn" class="secondary-btn">My Booking</button>
+            </div>
+        </div>
+
+        <!-- 服务选择页面 -->
+        <div id="service-page" class="page">
+            <header>
+                <button class="back-btn" onclick="goBack()">←</button>
+                <h2>选择服务</h2>
+            </header>
+            
+            <div class="service-section">
+                <h3>基础服务</h3>
+                <div class="service-list">
+                    <div class="service-item" data-service="basic-single" data-price="70" data-duration="75">
+                        <div class="service-info">
+                            <h4>本甲单色(含建构)</h4>
+                            <p>$70 | 1小时15分钟</p>
+                        </div>
+                        <input type="radio" name="basic-service" value="basic-single">
+                    </div>
+                    <div class="service-item" data-service="repair" data-price="3-10" data-duration="0">
+                        <div class="service-info">
+                            <h4>修补指甲</h4>
+                            <p>$3-10</p>
+                        </div>
+                        <input type="radio" name="basic-service" value="repair">
+                    </div>
+                    <div class="service-item" data-service="extend-single" data-price="100" data-duration="105">
+                        <div class="service-info">
+                            <h4>延长单色(包含建构)</h4>
+                            <p>$100 | 1小时45分钟</p>
+                        </div>
+                        <input type="radio" name="basic-service" value="extend-single">
+                    </div>
+                    <div class="service-item" data-service="extend-reuse" data-price="80" data-duration="90">
+                        <div class="service-info">
+                            <h4>延长二次利用</h4>
+                            <p>$80 | 1小时30分钟</p>
+                        </div>
+                        <input type="radio" name="basic-service" value="extend-reuse">
+                    </div>
+                </div>
+            </div>
+
+            <div class="addon-section">
+                <h3>增值服务</h3>
+                <div class="addon-list">
+                    <div class="addon-item" data-addon="remove-shop-basic" data-price="5" data-duration="15">
+                        <div class="addon-info">
+                            <h4>本店卸甲油胶本甲</h4>
+                            <p>$5 | 15分钟</p>
+                        </div>
+                        <input type="checkbox" name="addon" value="remove-shop-basic">
+                    </div>
+                    <div class="addon-item" data-addon="remove-shop-extend" data-price="10" data-duration="30">
+                        <div class="addon-info">
+                            <h4>本店卸甲油胶延长</h4>
+                            <p>$10 | 30分钟</p>
+                        </div>
+                        <input type="checkbox" name="addon" value="remove-shop-extend">
+                    </div>
+                    <div class="addon-item" data-addon="remove-other-basic" data-price="10" data-duration="15">
+                        <div class="addon-info">
+                            <h4>非本店卸甲油胶本甲</h4>
+                            <p>$10 | 15分钟</p>
+                        </div>
+                        <input type="checkbox" name="addon" value="remove-other-basic">
+                    </div>
+                    <div class="addon-item" data-addon="remove-other-extend" data-price="20" data-duration="30">
+                        <div class="addon-info">
+                            <h4>非本店卸甲油胶延长</h4>
+                            <p>$20 | 30分钟</p>
+                        </div>
+                        <input type="checkbox" name="addon" value="remove-other-extend">
+                    </div>
+                    <div class="addon-item" data-addon="remove-crystal-basic" data-price="20" data-duration="30">
+                        <div class="addon-info">
+                            <h4>卸水晶本甲</h4>
+                            <p>$20 | 30分钟</p>
+                        </div>
+                        <input type="checkbox" name="addon" value="remove-crystal-basic">
+                    </div>
+                    <div class="addon-item" data-addon="remove-crystal-extend" data-price="30" data-duration="40">
+                        <div class="addon-info">
+                            <h4>卸水晶延长</h4>
+                            <p>$30 | 40分钟</p>
+                        </div>
+                        <input type="checkbox" name="addon" value="remove-crystal-extend">
+                    </div>
+                    <div class="addon-item" data-addon="gradient" data-price="25" data-duration="15">
+                        <div class="addon-info">
+                            <h4>单色渐变</h4>
+                            <p>$25 | 15分钟</p>
+                        </div>
+                        <input type="checkbox" name="addon" value="gradient">
+                    </div>
+                    <div class="addon-item" data-addon="single-diamond" data-price="1-10" data-duration="0">
+                        <div class="addon-info">
+                            <h4>单钻</h4>
+                            <p>$1-10</p>
+                        </div>
+                        <input type="checkbox" name="addon" value="single-diamond">
+                    </div>
+                    <div class="addon-item" data-addon="diamond-ball" data-price="3-20" data-duration="0">
+                        <div class="addon-info">
+                            <h4>钻球</h4>
+                            <p>$3-20</p>
+                        </div>
+                        <input type="checkbox" name="addon" value="diamond-ball">
+                    </div>
+                    <div class="addon-item" data-addon="accessories" data-price="2-15" data-duration="0">
+                        <div class="addon-info">
+                            <h4>饰品</h4>
+                            <p>$2-15</p>
+                        </div>
+                        <input type="checkbox" name="addon" value="accessories">
+                    </div>
+                    <div class="addon-item" data-addon="nail-biting" data-price="10-20" data-duration="0">
+                        <div class="addon-info">
+                            <h4>啃咬甲视严重程度加收</h4>
+                            <p>$10-20</p>
+                        </div>
+                        <input type="checkbox" name="addon" value="nail-biting">
+                    </div>
+                </div>
+            </div>
+
+            <div class="price-summary">
+                <div id="selected-services"></div>
+                <div id="total-price">总价: $0</div>
+                <div id="total-duration">总时长: 0分钟</div>
+            </div>
+
+            <button id="next-to-booking" class="primary-btn" disabled>下一步</button>
+        </div>
+
+        <!-- 预约时间选择页面 -->
+        <div id="booking-page" class="page">
+            <header>
+                <button class="back-btn" onclick="goBack()">←</button>
+                <h2>选择预约时间</h2>
+            </header>
+            
+            <div class="calendar-section">
+                <div class="calendar-nav">
+                    <button id="prev-week">‹</button>
+                    <span id="current-week"></span>
+                    <button id="next-week">›</button>
+                </div>
+                <div id="calendar"></div>
+            </div>
+
+            <div class="time-slots">
+                <h3>可预约时间</h3>
+                <div id="available-times"></div>
+            </div>
+
+            <button id="next-to-info" class="primary-btn" disabled>下一步</button>
+        </div>
+
+        <!-- 用户信息页面 -->
+        <div id="info-page" class="page">
+            <header>
+                <button class="back-btn" onclick="goBack()">←</button>
+                <h2>填写信息</h2>
+            </header>
+            
+            <div class="form-section">
+                <div class="form-group">
+                    <label for="customer-name">姓名 *</label>
+                    <input type="text" id="customer-name" required>
+                </div>
+                <div class="form-group">
+                    <label for="customer-phone">电话号码 *</label>
+                    <input type="tel" id="customer-phone" required>
+                </div>
+            </div>
+
+            <div class="booking-summary">
+                <h3>预约详情</h3>
+                <div id="booking-details"></div>
+            </div>
+
+            <button id="submit-booking" class="primary-btn" disabled>提交预约</button>
+        </div>
+
+        <!-- 我的预约页面 -->
+        <div id="my-booking-page" class="page">
+            <header>
+                <button class="back-btn" onclick="goBack()">←</button>
+                <h2>我的预约</h2>
+            </header>
+            
+            <div class="login-section">
+                <div class="form-group">
+                    <label for="login-phone">请输入手机号码</label>
+                    <input type="tel" id="login-phone" placeholder="输入手机号码">
+                </div>
+                <button id="login-btn" class="primary-btn">登录</button>
+            </div>
+
+            <div id="booking-list" class="booking-list" style="display: none;">
+                <h3>您的预约</h3>
+                <div id="bookings"></div>
+            </div>
+        </div>
+
+        <!-- 预约确认页面 -->
+        <div id="confirmation-page" class="page">
+            <header>
+                <h2>预约已提交</h2>
+            </header>
+            
+            <div class="confirmation-content">
+                <div class="success-icon">✓</div>
+                <p>您的预约已成功提交！</p>
+                <p>我们会尽快确认您的预约，并发送短信通知。</p>
+                <div id="confirmation-details"></div>
+            </div>
+
+            <div class="confirmation-actions">
+                <button id="back-to-home" class="primary-btn">返回主页</button>
+                <button id="view-my-bookings" class="secondary-btn">查看我的预约</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
