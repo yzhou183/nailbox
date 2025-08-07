@@ -96,7 +96,7 @@ this.smsConfig = {
 3. 找到 "Environment variables" 
 4. 添加以下变量：
    - `TWILIO_ACCOUNT_SID`: AC983522c8e3a05daf29ba5b48e23f4381
-   - `TWILIO_AUTH_TOKEN`: eceec63f6b5c1300fe026a9f959f7663
+   - `TWILIO_AUTH_TOKEN`: d6ce6a4b11eafdf6c311feeb86f3867b
    - `TWILIO_FROM_NUMBER`: +18334973485
 
 ### 部署文件:

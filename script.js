@@ -16,7 +16,7 @@ class NailBoxApp {
             adminPhone: '3238189780',
             // Twilio配置 - 在生产环境中应使用环境变量
             twilioAccountSid: this.getTwilioConfig('accountSid') || 'AC983522c8e3a05daf29ba5b48e23f4381',
-            twilioAuthToken: this.getTwilioConfig('authToken') || 'eceec63f6b5c1300fe026a9f959f7663',
+            twilioAuthToken: this.getTwilioConfig('authToken') || 'd6ce6a4b11eafdf6c311feeb86f3867b',
             twilioFromNumber: this.getTwilioConfig('fromNumber') || '+18334973485'
         };
         
