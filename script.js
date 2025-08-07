@@ -13,10 +13,24 @@ class NailBoxApp {
         // SMS configuration
         this.smsConfig = {
             enabled: true,
-            adminPhone: '3238189780'
+            adminPhone: '3238189780',
+            // Twilio配置 - 在生产环境中应使用环境变量
+            twilioAccountSid: this.getTwilioConfig('accountSid') || 'AC983522c8e3a05daf29ba5b48e23f4381',
+            twilioAuthToken: this.getTwilioConfig('authToken') || 'eceec63f6b5c1300fe026a9f959f7663',
+            twilioFromNumber: this.getTwilioConfig('fromNumber') || '+18334973485'
         };
         
         this.init();
+    }
+
+    // 获取Twilio配置 - 支持环境变量
+    getTwilioConfig(key) {
+        // 尝试从环境变量获取（在服务器端部署时使用）
+        if (typeof process !== 'undefined' && process.env) {
+            const envKey = `TWILIO_${key.toUpperCase()}`;
+            return process.env[envKey];
+        }
+        return null;
     }
 
     // 刷新预约数据
@@ -387,15 +401,38 @@ class NailBoxApp {
 
         // 获取选中日期的已确认预约
         const bookedTimes = this.getBookedTimesForDate(this.selectedDate);
+        
+        // 获取当前时间和选中日期
+        const now = new Date();
+        const selectedDate = new Date(this.selectedDate);
+        const isToday = selectedDate.toDateString() === now.toDateString();
 
         timeSlots.forEach(time => {
             const timeEl = document.createElement('div');
             const isBooked = bookedTimes.includes(time);
             
+            // 检查是否是今天且时间太近（2小时内）
+            let isTooEarly = false;
+            if (isToday) {
+                const [hours, minutes] = time.split(':').map(Number);
+                const slotTime = new Date();
+                slotTime.setHours(hours, minutes, 0, 0);
+                
+                // 计算当前时间加2小时
+                const twoHoursLater = new Date(now);
+                twoHoursLater.setHours(twoHoursLater.getHours() + 2);
+                
+                isTooEarly = slotTime <= twoHoursLater;
+            }
+            
             if (isBooked) {
                 timeEl.className = 'time-slot booked';
                 timeEl.textContent = time;
                 timeEl.title = '该时间段已被预约';
+            } else if (isTooEarly) {
+                timeEl.className = 'time-slot unavailable';
+                timeEl.textContent = time;
+                timeEl.title = '预约需提前2小时';
             } else {
                 timeEl.className = 'time-slot';
                 timeEl.textContent = time;
@@ -709,39 +746,63 @@ class NailBoxApp {
         }
     }
 
-    // SMS服务功能
+    // SMS服务功能 - 使用Twilio
     async sendSMS(phone, message) {
         if (!this.smsConfig.enabled) {
             console.log('SMS功能已禁用');
             return false;
         }
 
+        // 检查Twilio配置
+        if (this.smsConfig.twilioAccountSid === 'your_twilio_account_sid_here' ||
+            this.smsConfig.twilioAuthToken === 'your_twilio_auth_token_here' ||
+            this.smsConfig.twilioFromNumber === 'your_twilio_phone_number_here') {
+            console.log('Twilio未配置，使用模拟SMS发送');
+            console.log(`模拟SMS发送到 ${phone}: ${message}`);
+            // 显示SMS内容给用户查看
+            alert(`SMS模拟发送到 ${phone}:\n${message}`);
+            return true;
+        }
+
         try {
-            // 使用 TextBee SMS服务 (免费API)
-            const response = await fetch('https://api.textbee.com/api/v1/gateway/sms', {
+            // 格式化电话号码 (确保包含国家代码)
+            let formattedPhone = phone;
+            if (!phone.startsWith('+')) {
+                // 美国电话号码
+                formattedPhone = '+1' + phone.replace(/[^\d]/g, '');
+            }
+
+            // 使用Twilio API
+            const auth = btoa(`${this.smsConfig.twilioAccountSid}:${this.smsConfig.twilioAuthToken}`);
+            const response = await fetch(`https://api.twilio.com/2010-04-01/Accounts/${this.smsConfig.twilioAccountSid}/Messages.json`, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Bearer your_textbee_token' // 需要真实的token
+                    'Authorization': `Basic ${auth}`,
+                    'Content-Type': 'application/x-www-form-urlencoded'
                 },
-                body: JSON.stringify({
-                    to: phone,
-                    message: message,
-                    sender: 'NailBox'
+                body: new URLSearchParams({
+                    'From': this.smsConfig.twilioFromNumber,
+                    'To': formattedPhone,
+                    'Body': message
                 })
             });
 
             if (response.ok) {
                 console.log(`SMS发送成功到 ${phone}`);
+                const result = await response.json();
+                console.log('Twilio响应:', result);
                 return true;
             } else {
                 console.error('SMS发送失败:', response.statusText);
+                const errorData = await response.text();
+                console.error('错误详情:', errorData);
                 return false;
             }
         } catch (error) {
             console.error('SMS发送错误:', error);
-            // 在开发环境中，我们模拟SMS发送成功
+            // 开发环境fallback
             console.log(`模拟SMS发送到 ${phone}: ${message}`);
+            alert(`SMS模拟发送到 ${phone}:\n${message}`);
             return true;
         }
     }
